@@ -12,7 +12,14 @@ sys.path.insert(0, BASE_DIR)
 
 from backend.extensions import db  # noqa: E402
 from database.config import SQLALCHEMY_DATABASE_URI  # noqa: E402
-from database.models import SOSAlert, Subscription, TrustedContact, User  # noqa: F401, E402
+from database.models import (  # noqa: F401, E402
+    Conversation,
+    Message,
+    SOSAlert,
+    Subscription,
+    TrustedContact,
+    User,
+)
 
 config = context.config
 

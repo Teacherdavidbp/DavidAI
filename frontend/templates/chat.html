@@ -1,10 +1,43 @@
 {% extends "base.html" %}
 {% block title %}AI Chat — DavidAI{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+{% endblock %}
 {% block content %}
-<h1>AI Chat</h1>
-<p style="color:#8b9cb3;">Local testing via AI Lab Dashboard (Ollama qwen2.5:7b)</p>
-<div class="card">
-  <p>DavidAI chat uses the lab Ollama integration with real UK date/time injection.</p>
-  <p><a href="http://127.0.0.1:5000/chat" class="btn" target="_blank">Open Lab Chat</a></p>
+<div class="chat-page">
+  <div class="page-header">
+    <h1>AI Chat</h1>
+    <p>Local Qwen via Ollama &middot; {{ default_model }}</p>
+  </div>
+
+  <div id="chat-messages" class="chat-messages" aria-live="polite">
+    <div class="chat-bubble assistant">
+      <strong>Assistant</strong>
+      <p>Hello — I am DavidAI running locally via Ollama. Ask anything to get started.</p>
+    </div>
+  </div>
+
+  <div id="chat-error" class="chat-error hidden" role="alert"></div>
+  <div id="chat-loading" class="chat-loading hidden">Thinking…</div>
+
+  <div class="chat-options">
+    <label class="chat-checkbox">
+      <input type="checkbox" id="web-search-toggle">
+      Use web search
+    </label>
+    <span class="chat-option-hint">Mock search mode for current-events testing</span>
+    <button type="button" id="clear-btn" class="btn btn-secondary">Clear chat</button>
+  </div>
+
+  <form id="chat-form" class="chat-form">
+    <textarea id="chat-input" rows="2" placeholder="Type your message…" required></textarea>
+    <button type="submit" id="send-btn" class="btn">Send</button>
+  </form>
 </div>
+
+<script>
+  window.DEFAULT_MODEL = {{ default_model|tojson }};
+  window.FRONTEND_TIMEOUT_SEC = 195;
+</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 {% endblock %}

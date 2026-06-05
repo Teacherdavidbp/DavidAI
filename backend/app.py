@@ -1,12 +1,13 @@
 """DavidAI — Safety MVP Flask application with PostgreSQL authentication."""
 
+import logging
 import os
 import sys
 from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.exc import IntegrityError
 
@@ -15,9 +16,18 @@ sys.path.insert(0, str(BASE_DIR))
 
 load_dotenv(BASE_DIR / ".env")
 
+from backend.chat_routes import (  # noqa: E402
+    clear_user_conversations,
+    conversation_to_dict,
+    get_user_conversation,
+    process_chat_message,
+)
+from backend.chat_service import DEFAULT_CHAT_MODEL  # noqa: E402
 from backend.extensions import db, login_manager  # noqa: E402
 from database.config import SQLALCHEMY_DATABASE_URI  # noqa: E402
 from database.models import User  # noqa: E402
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 
 def create_app() -> Flask:
@@ -129,7 +139,48 @@ def register_routes(app: Flask) -> None:
     @app.route("/chat")
     @login_required
     def chat():
-        return render_template("chat.html", page="chat")
+        return render_template(
+            "chat.html",
+            page="chat",
+            default_model=DEFAULT_CHAT_MODEL,
+        )
+
+    @app.route("/api/chat", methods=["POST"])
+    @login_required
+    def api_chat():
+        body = request.get_json(silent=True) or {}
+        message = (body.get("message") or "").strip()
+        use_web_search = bool(body.get("use_web_search"))
+
+        if not message:
+            return jsonify({"ok": False, "error": "Message is required"}), 400
+
+        logging.getLogger(__name__).info(
+            "api/chat user=%s web_search=%s message=%r",
+            current_user.id,
+            use_web_search,
+            message[:80],
+        )
+
+        result = process_chat_message(message, use_web_search=use_web_search)
+        if not result.get("ok"):
+            return jsonify(result), 502
+        return jsonify(result)
+
+    @app.route("/api/conversations")
+    @login_required
+    def api_conversations():
+        conversation = get_user_conversation(current_user.id)
+        if conversation is None:
+            return jsonify({"ok": True, "conversation": None, "messages": []})
+        data = conversation_to_dict(conversation)
+        return jsonify({"ok": True, "conversation": data, "messages": data["messages"]})
+
+    @app.route("/api/conversations/clear", methods=["POST"])
+    @login_required
+    def api_conversations_clear():
+        deleted = clear_user_conversations(current_user.id)
+        return jsonify({"ok": True, "deleted_messages": deleted})
 
     @app.route("/safety")
     @login_required

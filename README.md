@@ -12,10 +12,44 @@ PostgreSQL-backed auth with Flask-Login and Werkzeug password hashing.
 | Login / logout | Ready |
 | Session management | Ready (Flask-Login, remember me) |
 | User dashboard | Ready |
+| AI Chat MVP | Ready |
 | GPS location sharing | Architecture ready |
 | Trusted contacts | Models ready |
 | SOS emergency button | UI scaffold |
 | £3.99 subscription | Planned (Stripe) |
+
+## AI Chat (`/chat`)
+
+Local Qwen chat powered by Ollama, with optional mock web search.
+
+| Feature | Details |
+|---------|---------|
+| Default model | `qwen2.5:7b` |
+| Web search toggle | Off = normal Qwen; On = mock search context first |
+| Chat storage | PostgreSQL `conversations` + `messages` tables |
+| Access | Logged-in users only (Flask-Login) |
+
+### API routes
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| GET | `/chat` | Chat page |
+| POST | `/api/chat` | Send message, get Qwen response, save to DB |
+| GET | `/api/conversations` | Load user's chat history |
+| POST | `/api/conversations/clear` | Clear user's chat history |
+
+### Web search mode
+
+Mock/test mode only — same pattern as AI-Lab-Dashboard. No API keys configured.
+
+Future provider options: Tavily, Brave Search API, Serper, Google Custom Search.
+
+### Error handling
+
+- Ollama not running
+- Model not installed (`ollama pull qwen2.5:7b`)
+- Request timeout (180s backend, 195s frontend)
+- Web search unavailable
 
 ## Run DavidAI app
 
@@ -30,17 +64,19 @@ python app.py
 
 Open http://127.0.0.1:5001 — register a new account or sign in.
 
+Requires Ollama running with `qwen2.5:7b` installed.
+
 ## Database
 
 - **Dev DB:** `davidai_dev`
 - **Config:** `database/config.py` (`DAVIDAI_DATABASE_URL`)
-- **Models:** `database/models.py`
+- **Models:** `database/models.py` — includes `conversations`, `messages`
 - **Migrations:** `alembic upgrade head` from project root
 
 ## Navigation
 
 - **Dashboard** — Account overview and quick actions
-- **AI Chat** — Link to lab Ollama chat
+- **AI Chat** — Local Qwen chat with history
 - **Safety** — SOS and trusted contacts
 - **Profile** — User details and subscription
 
@@ -49,15 +85,16 @@ Open http://127.0.0.1:5001 — register a new account or sign in.
 ```
 DavidAI/
 ├── backend/
-│   ├── app.py           Flask app + auth routes
-│   ├── extensions.py    db, login_manager
+│   ├── app.py           Flask app + auth + chat routes
+│   ├── chat_service.py  Ollama + mock web search
+│   ├── chat_routes.py   Conversation storage
 │   └── requirements.txt
 ├── database/
 │   ├── config.py
 │   ├── models.py
-│   └── migrations/      Alembic
+│   └── migrations/
 ├── frontend/templates/
-├── alembic.ini
+├── frontend/static/js/chat.js
 └── run_migrations.ps1
 ```
 
