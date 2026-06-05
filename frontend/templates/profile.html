@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Profile — DavidAI{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Profile</h1>
+  <p>Your account details and subscription</p>
+</div>
+
+<div class="card-grid">
+  <div class="card">
+    <h3>Personal details</h3>
+    <div class="meta-item">
+      <span class="meta-label">Full name</span>
+      <span>{{ current_user.full_name }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Email</span>
+      <span>{{ current_user.email }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Phone</span>
+      <span>{{ current_user.phone or '—' }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Account created</span>
+      <span>{{ current_user.created_at.strftime('%d %B %Y at %H:%M') }}</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Subscription</h3>
+    <p>Safety plan: <strong>£3.99 / month</strong></p>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">
+      Stripe billing — planned. See <code>docs/SAFETY_ARCHITECTURE.md</code>.
+    </p>
+    <button type="button" class="btn" disabled>Subscribe (coming soon)</button>
+  </div>
+
+  <div class="card">
+    <h3>Session</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">
+      You are signed in. Sessions are managed by Flask-Login with secure cookies.
+    </p>
+    <a href="{{ url_for('logout') }}" class="btn btn-secondary">Sign out</a>
+  </div>
+</div>
+{% endblock %}

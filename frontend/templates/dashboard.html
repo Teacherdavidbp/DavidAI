@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — DavidAI{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Welcome, {{ current_user.display_name }}</h1>
+  <p>Your DavidAI Safety MVP dashboard</p>
+</div>
+
+<div class="card-grid">
+  <div class="card">
+    <h3>Account</h3>
+    <div class="meta-item">
+      <span class="meta-label">Email</span>
+      <span>{{ current_user.email }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Member since</span>
+      <span>{{ current_user.created_at.strftime('%d %b %Y') }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Status</span>
+      <span>
+        {% if current_user.is_active %}
+        <span class="badge badge-active">Active</span>
+        {% else %}
+        <span class="badge badge-planning">Inactive</span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Session</span>
+      <span><span class="status-dot active"></span>Signed in</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Quick actions</h3>
+    <p style="margin: 0 0 0.75rem; color: var(--text-muted); font-size: 0.9rem;">
+      Safety tools and AI chat for your account.
+    </p>
+    <p><a href="{{ url_for('safety') }}" class="btn btn-danger">Open Safety Center</a></p>
+    <p><a href="{{ url_for('chat') }}" class="btn">AI Chat</a></p>
+    <p><a href="http://127.0.0.1:5000/chat" class="btn" style="background: var(--planning);">Lab Chat (Ollama)</a></p>
+  </div>
+
+  <div class="card">
+    <h3>Subscription</h3>
+    <p>Safety plan: <strong>£3.99/month</strong></p>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Stripe billing integration coming soon.</p>
+    <span class="badge badge-planning">Coming soon</span>
+  </div>
+</div>
+{% endblock %}

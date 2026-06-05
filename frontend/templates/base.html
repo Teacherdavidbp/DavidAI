@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}DavidAI{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">DA</div>
+        <span class="sidebar-title">DavidAI</span>
+      </div>
+      {% if current_user.is_authenticated %}
+      <div class="sidebar-user">
+        <span class="status-dot active"></span>{{ current_user.display_name }}
+      </div>
+      {% endif %}
+      <nav class="nav">
+        <a href="{{ url_for('home') }}" class="{% if page == 'home' %}active{% endif %}">Dashboard</a>
+        <a href="{{ url_for('chat') }}" class="{% if page == 'chat' %}active{% endif %}">AI Chat</a>
+        <a href="{{ url_for('safety') }}" class="{% if page == 'safety' %}active{% endif %}">Safety</a>
+        <a href="{{ url_for('profile') }}" class="{% if page == 'profile' %}active{% endif %}">Profile</a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+        <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
+      </nav>
+    </aside>
+    <main class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

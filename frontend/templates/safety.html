@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Safety Center — DavidAI{% endblock %}
+{% block content %}
+<h1>Safety Center</h1>
+<p style="color:#8b9cb3;">GPS SOS · Trusted contacts · Emergency alerts</p>
+<div class="card" style="text-align:center;">
+  <button type="button" class="sos-btn" disabled title="Twilio integration coming soon">SOS</button>
+  <p style="color:#8b9cb3;font-size:0.85rem;">Emergency alert — Twilio SMS integration planned</p>
+</div>
+<div class="card">
+  <h3>Trusted contacts</h3>
+  <p style="color:#8b9cb3;">Add contacts who receive SOS alerts. Database models ready in <code>database/models.py</code>.</p>
+  <span class="badge badge-planning">Phase 2</span>
+</div>
+<div class="card">
+  <h3>GPS location</h3>
+  <p style="color:#8b9cb3;">Location sharing workflow documented in <code>docs/SAFETY_ARCHITECTURE.md</code>.</p>
+</div>
+{% endblock %}
