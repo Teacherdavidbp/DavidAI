@@ -28,11 +28,14 @@ Stored in PostgreSQL `sos_alerts`. **No Twilio, email, or SMS.**
 
 ---
 
-## Phase 2 — Trusted Contact integration
+## Phase 2 — Trusted Contact notifications (Implemented)
 
 - On SOS trigger, load user's primary trusted contact
-- Queue notification payload (contact name, phone, email)
-- Still no external send — log or store notification record
+- Create `SOSNotification` record (`channel=sms`, `status=simulated`)
+- Store message with Google Maps link — **no real SMS sent**
+- Warning if no primary contact configured
+
+See `docs/SOS_NOTIFICATIONS_MVP_PLAN.md`
 
 ## Phase 3 — Email alerts
 

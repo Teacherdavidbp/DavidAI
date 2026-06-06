@@ -5,6 +5,11 @@ import logging
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
+from backend.notification_service import (
+    create_sos_notification,
+    list_user_notifications,
+    notification_to_dict,
+)
 from backend.sos_service import (
     alert_to_dict,
     get_user_alert,
@@ -24,11 +29,13 @@ def register_sos_routes(app: Flask) -> None:
     def sos_page():
         active = list_active_alerts(current_user.id)
         history = list_resolved_alerts(current_user.id)
+        notifications = list_user_notifications(current_user.id)
         return render_template(
             "sos.html",
             page="sos",
             active_alerts=active,
             alert_history=history,
+            notifications=notifications,
         )
 
     @app.route("/sos/trigger", methods=["POST"])
@@ -44,14 +51,21 @@ def register_sos_routes(app: Flask) -> None:
             return jsonify({"ok": False, "error": error}), 400
 
         alert = trigger_alert(current_user.id, float(latitude), float(longitude))
+        notification, warning = create_sos_notification(current_user.id, alert.id)
         logger.info(
-            "SOS triggered user=%s alert_id=%s lat=%s lng=%s",
+            "SOS triggered user=%s alert_id=%s lat=%s lng=%s notification=%s",
             current_user.id,
             alert.id,
             alert.latitude,
             alert.longitude,
+            notification.id if notification else None,
         )
-        return jsonify({"ok": True, "alert": alert_to_dict(alert)})
+        payload: dict = {"ok": True, "alert": alert_to_dict(alert)}
+        if notification:
+            payload["notification"] = notification_to_dict(notification)
+        if warning:
+            payload["warning"] = warning
+        return jsonify(payload)
 
     @app.route("/sos/resolve/<int:alert_id>", methods=["POST"])
     @login_required

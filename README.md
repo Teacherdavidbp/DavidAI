@@ -15,8 +15,9 @@ PostgreSQL-backed auth with Flask-Login and Werkzeug password hashing.
 | AI Chat MVP | Ready |
 | Trusted Contacts MVP | Ready |
 | SOS Alert MVP (Phase 1) | Ready |
+| SOS Notifications MVP (Phase 2) | Ready — simulated SMS |
 | GPS location sharing | Browser geolocation on SOS trigger |
-| SOS notifications (SMS/email) | Planned |
+| Real SMS (Twilio) / email | Planned |
 | £3.99 subscription | Planned (Stripe) |
 
 ## Trusted Contacts (`/contacts`)
@@ -44,7 +45,7 @@ Test report: `docs/TRUSTED_CONTACTS_MVP_TEST_REPORT.md`
 
 ## SOS Alerts (`/sos`) — Phase 1
 
-Logged-in users can trigger an SOS alert with browser GPS coordinates. Alerts are stored in PostgreSQL. **No SMS or email in Phase 1.**
+Logged-in users can trigger an SOS alert with browser GPS coordinates. Alerts are stored in PostgreSQL. **Phase 2** creates a simulated SMS notification for the primary trusted contact — no real SMS or email is sent.
 
 | Feature | Details |
 |---------|---------|
@@ -61,7 +62,10 @@ Logged-in users can trigger an SOS alert with browser GPS coordinates. Alerts ar
 | POST | `/sos/trigger` | Create active alert (JSON: latitude, longitude) |
 | POST | `/sos/resolve/<id>` | Resolve alert |
 
-Docs: `docs/SOS_ALERT_MVP_PLAN.md` · Test report: `docs/SOS_ALERT_MVP_TEST_REPORT.md`
+On trigger with a primary trusted contact, a `sos_notifications` record is created (`channel=sms`, `status=simulated`) with a Google Maps link in the message.
+
+Docs: `docs/SOS_ALERT_MVP_PLAN.md` · `docs/SOS_NOTIFICATIONS_MVP_PLAN.md`  
+Tests: `docs/SOS_ALERT_MVP_TEST_REPORT.md` · `docs/SOS_NOTIFICATIONS_MVP_TEST_REPORT.md`
 
 ## AI Chat (`/chat`)
 
@@ -139,8 +143,10 @@ DavidAI/
 │   ├── contacts_routes.py
 │   ├── sos_service.py
 │   ├── sos_routes.py
+│   ├── notification_service.py
 │   ├── test_trusted_contacts_mvp.py
-│   └── test_sos_alert_mvp.py
+│   ├── test_sos_alert_mvp.py
+│   └── test_sos_notifications_mvp.py
 ├── database/
 │   ├── config.py
 │   ├── models.py

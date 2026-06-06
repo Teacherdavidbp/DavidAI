@@ -16,6 +16,7 @@ from database.models import (  # noqa: F401, E402
     Conversation,
     Message,
     SOSAlert,
+    SOSNotification,
     Subscription,
     TrustedContact,
     User,

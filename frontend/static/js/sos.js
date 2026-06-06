@@ -2,6 +2,7 @@
   const sosBtn = document.getElementById("sos-btn");
   const gpsValue = document.getElementById("gps-value");
   const feedback = document.getElementById("sos-feedback");
+  const notificationResult = document.getElementById("sos-notification-result");
 
   if (!sosBtn || !gpsValue) return;
 
@@ -18,6 +19,37 @@
 
   function hideFeedback() {
     if (feedback) feedback.className = "sos-feedback hidden";
+    if (notificationResult) notificationResult.className = "sos-notification-result hidden";
+  }
+
+  function showNotificationResult(data) {
+    if (!notificationResult) return;
+
+    if (data.notification) {
+      const n = data.notification;
+      notificationResult.innerHTML =
+        "<h4>SOS alert created</h4>" +
+        "<p><strong>Would notify:</strong> " + escapeHtml(n.contact_name) + "</p>" +
+        "<p><strong>Channel:</strong> SMS (simulated)</p>" +
+        "<p><strong>Status:</strong> Simulated</p>" +
+        "<p class=\"sos-notification-preview\">" + escapeHtml(n.message) + "</p>";
+      notificationResult.className = "sos-notification-result success";
+      return;
+    }
+
+    if (data.warning) {
+      notificationResult.innerHTML =
+        "<h4>SOS alert created</h4>" +
+        "<p class=\"sos-warning-text\">" + escapeHtml(data.warning) + "</p>" +
+        "<p><a href=\"/contacts\">Add a primary trusted contact</a></p>";
+      notificationResult.className = "sos-notification-result warning";
+    }
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text || "";
+    return div.innerHTML;
   }
 
   function checkGeolocationSupport() {
@@ -87,14 +119,16 @@
         throw new Error(data.error || "Failed to create SOS alert.");
       }
 
-      showFeedback(
-        "SOS alert created. Your location has been saved. Help is not notified yet in Phase 1.",
-        "success"
-      );
+      if (data.warning) {
+        showFeedback(data.warning, "warning");
+      } else {
+        showFeedback("SOS alert created. Simulated SMS notification recorded.", "success");
+      }
+      showNotificationResult(data);
 
       setTimeout(function () {
         window.location.reload();
-      }, 1500);
+      }, 3500);
     } catch (err) {
       const message =
         err && err.code !== undefined
@@ -110,7 +144,7 @@
   sosBtn.addEventListener("click", function () {
     if (
       !window.confirm(
-        "Trigger SOS alert?\n\nYour GPS location will be saved. No SMS or email is sent in Phase 1."
+        "Trigger SOS alert?\n\nYour GPS location will be saved. SMS is simulated only — no real message is sent."
       )
     ) {
       return;

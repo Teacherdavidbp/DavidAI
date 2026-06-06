@@ -31,6 +31,9 @@ class User(UserMixin, db.Model):
     sos_alerts: Mapped[list["SOSAlert"]] = orm_relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    sos_notifications: Mapped[list["SOSNotification"]] = orm_relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
     conversations: Mapped[list["Conversation"]] = orm_relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
@@ -62,6 +65,9 @@ class TrustedContact(db.Model):
     )
 
     user: Mapped["User"] = orm_relationship(back_populates="trusted_contacts")
+    sos_notifications: Mapped[list["SOSNotification"]] = orm_relationship(
+        back_populates="contact"
+    )
 
 
 class SOSAlert(db.Model):
@@ -77,6 +83,29 @@ class SOSAlert(db.Model):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime)
 
     user: Mapped["User"] = orm_relationship(back_populates="sos_alerts")
+    notifications: Mapped[list["SOSNotification"]] = orm_relationship(
+        back_populates="sos_alert", cascade="all, delete-orphan"
+    )
+
+
+class SOSNotification(db.Model):
+    __tablename__ = "sos_notifications"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    sos_alert_id: Mapped[int] = mapped_column(ForeignKey("sos_alerts.id"), nullable=False, index=True)
+    contact_id: Mapped[int] = mapped_column(ForeignKey("trusted_contacts.id"), nullable=False)
+    channel: Mapped[str] = mapped_column(String(16), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+    user: Mapped["User"] = orm_relationship(back_populates="sos_notifications")
+    sos_alert: Mapped["SOSAlert"] = orm_relationship(back_populates="notifications")
+    contact: Mapped["TrustedContact"] = orm_relationship(back_populates="sos_notifications")
 
 
 class Subscription(db.Model):

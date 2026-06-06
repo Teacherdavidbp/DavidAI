@@ -6,7 +6,7 @@
 {% block content %}
 <div class="page-header">
   <h1>SOS Alerts</h1>
-  <p>Trigger an emergency alert with your current GPS location. Phase 1 stores alerts only — no SMS or email yet.</p>
+  <p>Trigger an emergency alert with GPS location. Notifications are simulated in this MVP — no real SMS or email is sent.</p>
 </div>
 
 <section class="card sos-trigger-card">
@@ -23,6 +23,7 @@
   </div>
 
   <div id="sos-feedback" class="sos-feedback hidden" role="alert"></div>
+  <div id="sos-notification-result" class="sos-notification-result hidden"></div>
 </section>
 
 <section class="sos-section">
@@ -54,6 +55,40 @@
   {% else %}
   <div class="card sos-empty">
     <p>No active SOS alerts. Your location will be saved when you press SOS.</p>
+  </div>
+  {% endif %}
+</section>
+
+<section class="sos-section">
+  <h2 class="sos-section-title">Notification history</h2>
+  <p class="sos-section-note">Simulated SMS records — primary trusted contact would be notified in production.</p>
+  {% if notifications %}
+  <div class="sos-alert-list">
+    {% for note in notifications %}
+    <article class="card sos-notification-card">
+      <div class="sos-alert-head">
+        <span class="badge badge-sos-simulated">Simulated</span>
+        <time datetime="{{ note.created_at.isoformat() }}">{{ note.created_at.strftime('%d %b %Y %H:%M UTC') }}</time>
+      </div>
+      <p class="sos-coords">
+        <span class="sos-coords-label">Contact</span>
+        {{ note.contact.full_name if note.contact else 'Unknown' }}
+      </p>
+      <p class="sos-coords">
+        <span class="sos-coords-label">Channel</span>
+        {{ note.channel|upper }}
+      </p>
+      <p class="sos-coords">
+        <span class="sos-coords-label">Status</span>
+        {{ note.status|capitalize }}
+      </p>
+      <p class="sos-notification-message">{{ note.message }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card sos-empty">
+    <p>No notifications yet. Set a <a href="{{ url_for('contacts') }}">primary trusted contact</a> before triggering SOS.</p>
   </div>
   {% endif %}
 </section>
