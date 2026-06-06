@@ -14,8 +14,9 @@ PostgreSQL-backed auth with Flask-Login and Werkzeug password hashing.
 | User dashboard | Ready |
 | AI Chat MVP | Ready |
 | Trusted Contacts MVP | Ready |
-| GPS location sharing | Architecture ready |
-| SOS emergency button | UI scaffold |
+| SOS Alert MVP (Phase 1) | Ready |
+| GPS location sharing | Browser geolocation on SOS trigger |
+| SOS notifications (SMS/email) | Planned |
 | £3.99 subscription | Planned (Stripe) |
 
 ## Trusted Contacts (`/contacts`)
@@ -40,6 +41,27 @@ Logged-in users can manage emergency contacts stored in PostgreSQL.
 | POST | `/contacts/set-primary/<id>` | Set primary contact |
 
 Test report: `docs/TRUSTED_CONTACTS_MVP_TEST_REPORT.md`
+
+## SOS Alerts (`/sos`) — Phase 1
+
+Logged-in users can trigger an SOS alert with browser GPS coordinates. Alerts are stored in PostgreSQL. **No SMS or email in Phase 1.**
+
+| Feature | Details |
+|---------|---------|
+| Trigger | SOS button requests geolocation, POSTs to `/sos/trigger` |
+| Storage | `sos_alerts` table — user_id, lat/lng, status, timestamps |
+| Resolve | Mark active alerts as resolved |
+| Security | Flask-Login; users see only their own alerts |
+
+### Routes
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| GET | `/sos` | SOS page — button, GPS status, active + history |
+| POST | `/sos/trigger` | Create active alert (JSON: latitude, longitude) |
+| POST | `/sos/resolve/<id>` | Resolve alert |
+
+Docs: `docs/SOS_ALERT_MVP_PLAN.md` · Test report: `docs/SOS_ALERT_MVP_TEST_REPORT.md`
 
 ## AI Chat (`/chat`)
 
@@ -100,7 +122,8 @@ Requires Ollama running with `qwen2.5:7b` installed.
 
 - **Dashboard** — Account overview and quick actions
 - **AI Chat** — Local Qwen chat with history
-- **Safety** — SOS overview
+- **Safety** — Safety overview
+- **SOS Alerts** — Trigger and manage GPS SOS alerts
 - **Trusted Contacts** — Manage emergency contacts
 - **Profile** — User details and subscription
 
@@ -114,7 +137,10 @@ DavidAI/
 │   ├── chat_routes.py
 │   ├── contacts_service.py
 │   ├── contacts_routes.py
-│   └── test_trusted_contacts_mvp.py
+│   ├── sos_service.py
+│   ├── sos_routes.py
+│   ├── test_trusted_contacts_mvp.py
+│   └── test_sos_alert_mvp.py
 ├── database/
 │   ├── config.py
 │   ├── models.py

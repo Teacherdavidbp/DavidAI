@@ -1,0 +1,169 @@
+.sos-trigger-card {
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+.sos-trigger-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.sos-btn-live {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border: 4px solid rgba(239, 68, 68, 0.45);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 0 32px rgba(239, 68, 68, 0.35);
+}
+
+.sos-btn-live:hover:not(:disabled) {
+  transform: scale(1.03);
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.5);
+}
+
+.sos-btn-live:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.sos-trigger-hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.gps-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.gps-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.gps-value {
+  color: var(--text);
+}
+
+.gps-value.gps-ok {
+  color: #86efac;
+}
+
+.gps-value.gps-warn {
+  color: #fcd34d;
+}
+
+.gps-value.gps-error {
+  color: #fca5a5;
+}
+
+.sos-feedback {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.sos-feedback.hidden {
+  display: none;
+}
+
+.sos-feedback.success {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+}
+
+.sos-feedback.error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.sos-section {
+  margin-top: 2rem;
+}
+
+.sos-section-title {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.sos-alert-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.sos-alert-card {
+  margin-bottom: 0;
+}
+
+.sos-alert-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.badge-sos-active {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.badge-sos-resolved {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+}
+
+.sos-coords {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.sos-coords-label {
+  display: inline-block;
+  min-width: 4.5rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sos-resolved-at {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.sos-resolve-form {
+  margin-top: 0.75rem;
+}
+
+.sos-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 1.5rem;
+}
+
+.sos-empty p {
+  margin: 0;
+}

@@ -23,6 +23,7 @@
         <a href="{{ url_for('home') }}" class="{% if page == 'home' %}active{% endif %}">Dashboard</a>
         <a href="{{ url_for('chat') }}" class="{% if page == 'chat' %}active{% endif %}">AI Chat</a>
         <a href="{{ url_for('safety') }}" class="{% if page == 'safety' %}active{% endif %}">Safety</a>
+        <a href="{{ url_for('sos_page') }}" class="{% if page == 'sos' %}active{% endif %}">SOS Alerts</a>
         <a href="{{ url_for('contacts') }}" class="{% if page == 'contacts' %}active{% endif %}">Trusted Contacts</a>
         <a href="{{ url_for('profile') }}" class="{% if page == 'profile' %}active{% endif %}">Profile</a>
         {% if current_user.is_authenticated %}

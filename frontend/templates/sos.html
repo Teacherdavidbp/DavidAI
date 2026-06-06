@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}SOS Alerts — DavidAI{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sos.css') }}">
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>SOS Alerts</h1>
+  <p>Trigger an emergency alert with your current GPS location. Phase 1 stores alerts only — no SMS or email yet.</p>
+</div>
+
+<section class="card sos-trigger-card">
+  <div class="sos-trigger-wrap">
+    <button type="button" id="sos-btn" class="sos-btn-live" aria-label="Trigger SOS alert">
+      SOS
+    </button>
+    <p class="sos-trigger-hint">Press only in a genuine emergency</p>
+  </div>
+
+  <div class="gps-status" id="gps-status">
+    <span class="gps-label">GPS status</span>
+    <span class="gps-value" id="gps-value">Checking location access…</span>
+  </div>
+
+  <div id="sos-feedback" class="sos-feedback hidden" role="alert"></div>
+</section>
+
+<section class="sos-section">
+  <h2 class="sos-section-title">Active alerts</h2>
+  {% if active_alerts %}
+  <div class="sos-alert-list">
+    {% for alert in active_alerts %}
+    <article class="card sos-alert-card sos-alert-active">
+      <div class="sos-alert-head">
+        <span class="badge badge-sos-active">Active</span>
+        <time datetime="{{ alert.created_at.isoformat() }}">{{ alert.created_at.strftime('%d %b %Y %H:%M UTC') }}</time>
+      </div>
+      <p class="sos-coords">
+        <span class="sos-coords-label">Location</span>
+        {{ '%.5f'|format(alert.latitude) }}, {{ '%.5f'|format(alert.longitude) }}
+      </p>
+      <a
+        href="https://www.google.com/maps?q={{ alert.latitude }},{{ alert.longitude }}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-secondary btn-sm"
+      >View on map</a>
+      <form method="post" action="{{ url_for('sos_resolve', alert_id=alert.id) }}" class="sos-resolve-form">
+        <button type="submit" class="btn btn-sm">Mark resolved</button>
+      </form>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card sos-empty">
+    <p>No active SOS alerts. Your location will be saved when you press SOS.</p>
+  </div>
+  {% endif %}
+</section>
+
+<section class="sos-section">
+  <h2 class="sos-section-title">Alert history</h2>
+  {% if alert_history %}
+  <div class="sos-alert-list">
+    {% for alert in alert_history %}
+    <article class="card sos-alert-card">
+      <div class="sos-alert-head">
+        <span class="badge badge-sos-resolved">Resolved</span>
+        <time datetime="{{ alert.created_at.isoformat() }}">{{ alert.created_at.strftime('%d %b %Y %H:%M UTC') }}</time>
+      </div>
+      <p class="sos-coords">
+        <span class="sos-coords-label">Location</span>
+        {{ '%.5f'|format(alert.latitude) }}, {{ '%.5f'|format(alert.longitude) }}
+      </p>
+      {% if alert.resolved_at %}
+      <p class="sos-resolved-at">Resolved {{ alert.resolved_at.strftime('%d %b %Y %H:%M UTC') }}</p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card sos-empty">
+    <p>No resolved alerts yet.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/sos.js') }}"></script>
+{% endblock %}
