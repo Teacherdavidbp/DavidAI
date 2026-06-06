@@ -1,14 +1,18 @@
-"""SOS notification foundation — simulated SMS only (no Twilio/email)."""
+"""SOS notifications — simulated or Twilio SMS delivery."""
 
 from __future__ import annotations
 
 from datetime import datetime
 
 from backend.extensions import db
+from backend.sms_service import SmsDeliveryResult, send_twilio_sms, twilio_mode_label
 from database.models import SOSAlert, SOSNotification, TrustedContact, User
 
 CHANNEL_SMS = "sms"
+STATUS_PENDING = "pending"
 STATUS_SIMULATED = "simulated"
+STATUS_SENT = "sent"
+STATUS_FAILED = "failed"
 NO_PRIMARY_WARNING = "SOS created, but no primary trusted contact is set."
 
 
@@ -32,11 +36,50 @@ def build_sos_message(
     )
 
 
+def _apply_delivery_result(
+    notification: SOSNotification,
+    result: SmsDeliveryResult,
+) -> None:
+    notification.status = result.status
+    notification.provider_sid = result.provider_sid
+    notification.provider_detail = result.provider_detail
+    notification.updated_at = datetime.utcnow()
+
+
+def dispatch_sms_notification(
+    notification: SOSNotification,
+    contact: TrustedContact,
+    message: str,
+    *,
+    sms_sender=send_twilio_sms,
+) -> SOSNotification:
+    """Attempt Twilio delivery or keep simulated fallback."""
+    if not contact.phone_number:
+        _apply_delivery_result(
+            notification,
+            SmsDeliveryResult(
+                status=STATUS_FAILED,
+                provider_detail="Primary contact has no phone number for SMS.",
+            ),
+        )
+        db.session.commit()
+        db.session.refresh(notification)
+        return notification
+
+    result = sms_sender(contact.phone_number, message)
+    _apply_delivery_result(notification, result)
+    db.session.commit()
+    db.session.refresh(notification)
+    return notification
+
+
 def create_sos_notification(
     user_id: int,
     sos_alert_id: int,
+    *,
+    sms_sender=send_twilio_sms,
 ) -> tuple[SOSNotification | None, str | None]:
-    """Create a simulated SMS notification if a primary contact exists."""
+    """Create SOS notification and deliver SMS when Twilio is enabled."""
     contact = get_primary_contact_for_user(user_id)
     if contact is None:
         return None, NO_PRIMARY_WARNING
@@ -60,12 +103,19 @@ def create_sos_notification(
         sos_alert_id=sos_alert_id,
         contact_id=contact.id,
         channel=CHANNEL_SMS,
-        status=STATUS_SIMULATED,
+        status=STATUS_PENDING,
         message=message,
     )
     db.session.add(notification)
     db.session.commit()
     db.session.refresh(notification)
+
+    notification = dispatch_sms_notification(
+        notification,
+        contact,
+        message,
+        sms_sender=sms_sender,
+    )
     return notification, None
 
 
@@ -90,6 +140,9 @@ def notification_to_dict(notification: SOSNotification) -> dict:
         "channel": notification.channel,
         "status": notification.status,
         "message": notification.message,
+        "provider_sid": notification.provider_sid,
+        "provider_detail": notification.provider_detail,
+        "twilio_mode": twilio_mode_label(),
         "created_at": notification.created_at.isoformat() if notification.created_at else None,
         "updated_at": notification.updated_at.isoformat() if notification.updated_at else None,
     }

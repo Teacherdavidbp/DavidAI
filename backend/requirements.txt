@@ -6,3 +6,4 @@ psycopg2-binary>=2.9.0
 alembic>=1.13.0
 werkzeug>=3.0.0
 python-dotenv>=1.0.0
+twilio>=9.0.0

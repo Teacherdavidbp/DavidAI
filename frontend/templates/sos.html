@@ -6,7 +6,17 @@
 {% block content %}
 <div class="page-header">
   <h1>SOS Alerts</h1>
-  <p>Trigger an emergency alert with GPS location. Notifications are simulated in this MVP — no real SMS or email is sent.</p>
+  <p>Trigger an emergency alert with GPS location. SMS goes to your primary trusted contact when Twilio is enabled.</p>
+  <p class="sos-twilio-mode">
+    SMS mode:
+    {% if twilio_mode == 'live' %}
+    <span class="badge badge-sos-sent">Live (Twilio)</span>
+    {% elif twilio_mode == 'misconfigured' %}
+    <span class="badge badge-sos-failed">Misconfigured — simulated fallback</span>
+    {% else %}
+    <span class="badge badge-sos-simulated">Simulated</span>
+    {% endif %}
+  </p>
 </div>
 
 <section class="card sos-trigger-card">
@@ -61,13 +71,21 @@
 
 <section class="sos-section">
   <h2 class="sos-section-title">Notification history</h2>
-  <p class="sos-section-note">Simulated SMS records — primary trusted contact would be notified in production.</p>
+  <p class="sos-section-note">SMS delivery records for your primary trusted contact (sent, failed, or simulated).</p>
   {% if notifications %}
   <div class="sos-alert-list">
     {% for note in notifications %}
     <article class="card sos-notification-card">
       <div class="sos-alert-head">
+        {% if note.status == 'sent' %}
+        <span class="badge badge-sos-sent">Sent</span>
+        {% elif note.status == 'failed' %}
+        <span class="badge badge-sos-failed">Failed</span>
+        {% elif note.status == 'pending' %}
+        <span class="badge badge-sos-pending">Pending</span>
+        {% else %}
         <span class="badge badge-sos-simulated">Simulated</span>
+        {% endif %}
         <time datetime="{{ note.created_at.isoformat() }}">{{ note.created_at.strftime('%d %b %Y %H:%M UTC') }}</time>
       </div>
       <p class="sos-coords">
@@ -82,6 +100,18 @@
         <span class="sos-coords-label">Status</span>
         {{ note.status|capitalize }}
       </p>
+      {% if note.provider_sid %}
+      <p class="sos-coords">
+        <span class="sos-coords-label">Provider ID</span>
+        {{ note.provider_sid }}
+      </p>
+      {% endif %}
+      {% if note.provider_detail %}
+      <p class="sos-coords sos-provider-detail">
+        <span class="sos-coords-label">Detail</span>
+        {{ note.provider_detail }}
+      </p>
+      {% endif %}
       <p class="sos-notification-message">{{ note.message }}</p>
     </article>
     {% endfor %}

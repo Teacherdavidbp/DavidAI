@@ -10,6 +10,7 @@ from backend.notification_service import (
     list_user_notifications,
     notification_to_dict,
 )
+from backend.sms_service import twilio_mode_label
 from backend.sos_service import (
     alert_to_dict,
     get_user_alert,
@@ -36,6 +37,7 @@ def register_sos_routes(app: Flask) -> None:
             active_alerts=active,
             alert_history=history,
             notifications=notifications,
+            twilio_mode=twilio_mode_label(),
         )
 
     @app.route("/sos/trigger", methods=["POST"])

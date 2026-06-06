@@ -22,18 +22,52 @@
     if (notificationResult) notificationResult.className = "sos-notification-result hidden";
   }
 
+  function statusLabel(status) {
+    if (!status) return "Unknown";
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  }
+
+  function feedbackForStatus(status) {
+    switch (status) {
+      case "sent":
+        return "SOS alert created. SMS sent to primary trusted contact.";
+      case "failed":
+        return "SOS alert created. SMS delivery failed — see notification history.";
+      case "simulated":
+        return "SOS alert created. Simulated SMS notification recorded.";
+      default:
+        return "SOS alert created. Notification recorded.";
+    }
+  }
+
+  function resultClassForStatus(status) {
+    if (status === "failed") return "error";
+    if (status === "sent") return "success";
+    return "success";
+  }
+
   function showNotificationResult(data) {
     if (!notificationResult) return;
 
     if (data.notification) {
       const n = data.notification;
-      notificationResult.innerHTML =
+      const status = n.status || "simulated";
+      let html =
         "<h4>SOS alert created</h4>" +
-        "<p><strong>Would notify:</strong> " + escapeHtml(n.contact_name) + "</p>" +
-        "<p><strong>Channel:</strong> SMS (simulated)</p>" +
-        "<p><strong>Status:</strong> Simulated</p>" +
-        "<p class=\"sos-notification-preview\">" + escapeHtml(n.message) + "</p>";
-      notificationResult.className = "sos-notification-result success";
+        "<p><strong>Contact:</strong> " + escapeHtml(n.contact_name) + "</p>" +
+        "<p><strong>Channel:</strong> SMS</p>" +
+        "<p><strong>Status:</strong> " + escapeHtml(statusLabel(status)) + "</p>";
+
+      if (n.provider_sid) {
+        html += "<p><strong>Provider ID:</strong> " + escapeHtml(n.provider_sid) + "</p>";
+      }
+      if (n.provider_detail) {
+        html += "<p><strong>Detail:</strong> " + escapeHtml(n.provider_detail) + "</p>";
+      }
+      html += "<p class=\"sos-notification-preview\">" + escapeHtml(n.message) + "</p>";
+
+      notificationResult.innerHTML = html;
+      notificationResult.className = "sos-notification-result " + resultClassForStatus(status);
       return;
     }
 
@@ -121,8 +155,10 @@
 
       if (data.warning) {
         showFeedback(data.warning, "warning");
+      } else if (data.notification) {
+        showFeedback(feedbackForStatus(data.notification.status), data.notification.status === "failed" ? "warning" : "success");
       } else {
-        showFeedback("SOS alert created. Simulated SMS notification recorded.", "success");
+        showFeedback("SOS alert created.", "success");
       }
       showNotificationResult(data);
 
@@ -144,7 +180,7 @@
   sosBtn.addEventListener("click", function () {
     if (
       !window.confirm(
-        "Trigger SOS alert?\n\nYour GPS location will be saved. SMS is simulated only — no real message is sent."
+        "Trigger SOS alert?\n\nYour GPS location will be saved and your primary trusted contact may receive an SMS if Twilio is enabled."
       )
     ) {
       return;
