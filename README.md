@@ -16,8 +16,11 @@ PostgreSQL-backed auth with Flask-Login and Werkzeug password hashing.
 | Trusted Contacts MVP | Ready |
 | SOS Alert MVP (Phase 1) | Ready |
 | SOS Notifications MVP (Phase 2) | Ready — simulated SMS |
+| Twilio SMS MVP | Ready — live SMS when enabled |
+| Safety Center | Ready — unified safety dashboard |
 | GPS location sharing | Browser geolocation on SOS trigger |
-| Real SMS (Twilio) / email | Planned |
+| Real SMS (Twilio) | Ready when `TWILIO_ENABLED=true` |
+| Email notifications | Planned |
 | £3.99 subscription | Planned (Stripe) |
 
 ## Trusted Contacts (`/contacts`)
@@ -43,6 +46,27 @@ Logged-in users can manage emergency contacts stored in PostgreSQL.
 
 Test report: `docs/TRUSTED_CONTACTS_MVP_TEST_REPORT.md`
 
+## Safety Center (`/safety-center`)
+
+Central hub for reviewing and managing all safety-related activity. Existing pages (`/contacts`, `/sos`, `/safety`) remain unchanged.
+
+| Widget | Contents |
+|--------|----------|
+| Safety Overview | Contact count, primary contact, SOS totals, notification totals, SMS sent |
+| Trusted Contacts | All contacts with primary badge → **Manage Contacts** (`/contacts`) |
+| SOS History | Latest alerts with map links → **View SOS Page** (`/sos`) |
+| SMS History | Notification records with sent/failed/simulated/pending status |
+| Notification Status | Last 10 notifications with message preview |
+| Location History | Last 20 SOS GPS coordinates (history only, no live tracking) |
+
+### Route
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| GET | `/safety-center` | Safety Center dashboard (login required) |
+
+Docs: `docs/SAFETY_CENTER_ARCHITECTURE.md` · Tests: `docs/SAFETY_CENTER_TEST_REPORT.md`
+
 ## SOS Alerts (`/sos`) — Phase 1
 
 Logged-in users can trigger an SOS alert with browser GPS coordinates. Alerts are stored in PostgreSQL. **Phase 2** creates a simulated SMS notification for the primary trusted contact — no real SMS or email is sent.
@@ -62,9 +86,9 @@ Logged-in users can trigger an SOS alert with browser GPS coordinates. Alerts ar
 | POST | `/sos/trigger` | Create active alert (JSON: latitude, longitude) |
 | POST | `/sos/resolve/<id>` | Resolve alert |
 
-On trigger with a primary trusted contact, a `sos_notifications` record is created (`channel=sms`, `status=simulated`) with a Google Maps link in the message.
+On trigger with a primary trusted contact, a `sos_notifications` record is created (`channel=sms`) with status `sent`, `failed`, or `simulated` depending on Twilio configuration. Message includes a Google Maps link.
 
-Docs: `docs/SOS_ALERT_MVP_PLAN.md` · `docs/SOS_NOTIFICATIONS_MVP_PLAN.md`  
+Docs: `docs/SOS_ALERT_MVP_PLAN.md` · `docs/SOS_NOTIFICATIONS_MVP_PLAN.md` · `docs/TWILIO_SMS_MVP_TEST_REPORT.md`  
 Tests: `docs/SOS_ALERT_MVP_TEST_REPORT.md` · `docs/SOS_NOTIFICATIONS_MVP_TEST_REPORT.md`
 
 ## AI Chat (`/chat`)
@@ -126,7 +150,8 @@ Requires Ollama running with `qwen2.5:7b` installed.
 
 - **Dashboard** — Account overview and quick actions
 - **AI Chat** — Local Qwen chat with history
-- **Safety** — Safety overview
+- **Safety Center** — Unified safety dashboard (contacts, SOS, SMS, locations)
+- **Safety** — Legacy safety overview page
 - **SOS Alerts** — Trigger and manage GPS SOS alerts
 - **Trusted Contacts** — Manage emergency contacts
 - **Profile** — User details and subscription
@@ -144,9 +169,14 @@ DavidAI/
 │   ├── sos_service.py
 │   ├── sos_routes.py
 │   ├── notification_service.py
+│   ├── sms_service.py
+│   ├── safety_center_service.py
+│   ├── safety_center_routes.py
 │   ├── test_trusted_contacts_mvp.py
 │   ├── test_sos_alert_mvp.py
-│   └── test_sos_notifications_mvp.py
+│   ├── test_sos_notifications_mvp.py
+│   ├── test_twilio_sms_mvp.py
+│   └── test_safety_center.py
 ├── database/
 │   ├── config.py
 │   ├── models.py

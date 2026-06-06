@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}Safety Center — DavidAI{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/safety_center.css') }}">
+{% endblock %}
+{% block content %}
+<div class="page-header sc-header">
+  <div>
+    <h1>Safety Center</h1>
+    <p>Manage and review all safety-related activity from one place.</p>
+  </div>
+  <div class="sc-twilio-pill">
+    SMS:
+    {% if twilio_mode == 'live' %}
+    <span class="sc-status sc-status-sent">Live</span>
+    {% elif twilio_mode == 'misconfigured' %}
+    <span class="sc-status sc-status-failed">Misconfigured</span>
+    {% else %}
+    <span class="sc-status sc-status-simulated">Simulated</span>
+    {% endif %}
+  </div>
+</div>
+
+<section class="sc-section">
+  <h2 class="sc-section-title">Safety Overview</h2>
+  <div class="sc-overview-grid">
+    <article class="sc-stat-card">
+      <span class="sc-stat-label">Trusted Contacts</span>
+      <span class="sc-stat-value">{{ summary.total_contacts }}</span>
+    </article>
+    <article class="sc-stat-card">
+      <span class="sc-stat-label">Primary Contact</span>
+      <span class="sc-stat-value sc-stat-text">{{ summary.primary_contact_name or 'Not set' }}</span>
+    </article>
+    <article class="sc-stat-card">
+      <span class="sc-stat-label">Total SOS Alerts</span>
+      <span class="sc-stat-value">{{ summary.total_sos_alerts }}</span>
+    </article>
+    <article class="sc-stat-card">
+      <span class="sc-stat-label">Active SOS Alerts</span>
+      <span class="sc-stat-value {% if summary.active_sos_alerts %}sc-stat-warn{% endif %}">{{ summary.active_sos_alerts }}</span>
+    </article>
+    <article class="sc-stat-card">
+      <span class="sc-stat-label">Total Notifications</span>
+      <span class="sc-stat-value">{{ summary.total_notifications }}</span>
+    </article>
+    <article class="sc-stat-card">
+      <span class="sc-stat-label">SMS Sent</span>
+      <span class="sc-stat-value">{{ summary.sms_sent_count }}</span>
+    </article>
+  </div>
+</section>
+
+<div class="sc-widgets-grid">
+  <section class="card sc-widget sc-widget-contacts">
+    <div class="sc-widget-head">
+      <h2>Trusted Contacts</h2>
+      <a href="{{ url_for('contacts') }}" class="btn btn-sm">Manage Contacts</a>
+    </div>
+    {% if contacts %}
+    <div class="sc-table-wrap">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Relationship</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for contact in contacts %}
+          <tr>
+            <td>{{ contact.full_name }}</td>
+            <td>{{ contact.relationship or '—' }}</td>
+            <td>{{ contact.phone_number or '—' }}</td>
+            <td>{{ contact.email or '—' }}</td>
+            <td>
+              {% if contact.is_primary %}
+              <span class="sc-badge sc-badge-primary">Primary</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="sc-empty">No trusted contacts yet. <a href="{{ url_for('contacts') }}">Add your first contact</a>.</p>
+    {% endif %}
+  </section>
+
+  <section class="card sc-widget">
+    <div class="sc-widget-head">
+      <h2>SOS History</h2>
+      <a href="{{ url_for('sos_page') }}" class="btn btn-sm">View SOS Page</a>
+    </div>
+    {% if sos_alerts %}
+    <div class="sc-table-wrap">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Map</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for alert in sos_alerts %}
+          <tr>
+            <td><time datetime="{{ alert.created_at_iso }}">{{ alert.created_at.strftime('%d %b %Y %H:%M') }}</time></td>
+            <td><span class="sc-status sc-status-{{ alert.status }}">{{ alert.status|capitalize }}</span></td>
+            <td>{{ '%.5f'|format(alert.latitude) if alert.latitude is not none else '—' }}</td>
+            <td>{{ '%.5f'|format(alert.longitude) if alert.longitude is not none else '—' }}</td>
+            <td>
+              {% if alert.maps_url %}
+              <a href="{{ alert.maps_url }}" target="_blank" rel="noopener noreferrer" class="sc-link">Open map</a>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="sc-empty">No SOS alerts recorded yet.</p>
+    {% endif %}
+  </section>
+
+  <section class="card sc-widget">
+    <div class="sc-widget-head">
+      <h2>SMS History</h2>
+    </div>
+    {% if sms_history %}
+    <div class="sc-table-wrap">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th>Contact</th>
+            <th>Channel</th>
+            <th>Status</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for note in sms_history %}
+          <tr>
+            <td>{{ note.contact_name }}</td>
+            <td>{{ note.channel|upper }}</td>
+            <td><span class="sc-status sc-status-{{ note.status }}">{{ note.status|capitalize }}</span></td>
+            <td><time datetime="{{ note.created_at_iso }}">{{ note.created_at.strftime('%d %b %Y %H:%M') }}</time></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="sc-empty">No SMS notifications yet. Trigger SOS with a primary contact set.</p>
+    {% endif %}
+  </section>
+
+  <section class="card sc-widget">
+    <div class="sc-widget-head">
+      <h2>Notification Status</h2>
+      <span class="sc-widget-note">Last 10 notifications</span>
+    </div>
+    {% if notification_status %}
+    <ul class="sc-notification-list">
+      {% for note in notification_status %}
+      <li class="sc-notification-item">
+        <div class="sc-notification-meta">
+          <strong>{{ note.contact_name }}</strong>
+          <span class="sc-status sc-status-{{ note.status }}">{{ note.status|capitalize }}</span>
+          <span class="sc-channel">{{ note.channel|upper }}</span>
+        </div>
+        <p class="sc-notification-preview">{{ note.message_preview }}</p>
+        <time class="sc-notification-time" datetime="{{ note.created_at_iso }}">{{ note.created_at.strftime('%d %b %Y %H:%M UTC') }}</time>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="sc-empty">No notification activity yet.</p>
+    {% endif %}
+  </section>
+
+  <section class="card sc-widget sc-widget-wide">
+    <div class="sc-widget-head">
+      <h2>Location History</h2>
+      <span class="sc-widget-note">Last 20 SOS locations — history only, no live tracking</span>
+    </div>
+    {% if locations %}
+    <div class="sc-table-wrap">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Google Maps</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loc in locations %}
+          <tr>
+            <td><time datetime="{{ loc.created_at_iso }}">{{ loc.created_at.strftime('%d %b %Y %H:%M') }}</time></td>
+            <td>{{ '%.5f'|format(loc.latitude) if loc.latitude is not none else '—' }}</td>
+            <td>{{ '%.5f'|format(loc.longitude) if loc.longitude is not none else '—' }}</td>
+            <td>
+              {% if loc.maps_url %}
+              <a href="{{ loc.maps_url }}" target="_blank" rel="noopener noreferrer" class="sc-link">View on map</a>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="sc-empty">No location history yet. SOS triggers save GPS coordinates here.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/safety_center.js') }}"></script>
+{% endblock %}
