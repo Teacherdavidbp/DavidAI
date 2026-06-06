@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Trusted Contacts — DavidAI{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/contacts.css') }}">
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Trusted Contacts</h1>
+  <p>People who can be notified in an emergency. Only you can see and manage your contacts.</p>
+</div>
+
+<div class="contacts-layout">
+  <section class="card contacts-add-card">
+    <h3>Add contact</h3>
+    <form method="post" action="{{ url_for('contacts_add') }}" class="contact-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="add-full-name">Full name <span class="required">*</span></label>
+          <input type="text" id="add-full-name" name="full_name" required maxlength="255" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label for="add-relationship">Relationship</label>
+          <input type="text" id="add-relationship" name="relationship" maxlength="64" placeholder="e.g. Parent, Partner, Friend">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="add-phone">Phone number</label>
+          <input type="tel" id="add-phone" name="phone_number" maxlength="32" autocomplete="tel">
+        </div>
+        <div class="form-group">
+          <label for="add-email">Email</label>
+          <input type="email" id="add-email" name="email" maxlength="255" autocomplete="email">
+        </div>
+      </div>
+      <p class="form-hint">At least one of phone or email is required.</p>
+      <div class="form-check">
+        <input type="checkbox" id="add-primary" name="is_primary">
+        <label for="add-primary">Set as primary contact</label>
+      </div>
+      <button type="submit" class="btn">Add contact</button>
+    </form>
+  </section>
+
+  <section class="contacts-list-section">
+    <h2 class="contacts-list-title">Your contacts</h2>
+
+    {% if contacts %}
+    <div class="contacts-list">
+      {% for contact in contacts %}
+      <article class="card contact-card" id="contact-{{ contact.id }}">
+        <div class="contact-display">
+          <div class="contact-head">
+            <h3>{{ contact.full_name }}</h3>
+            {% if contact.is_primary %}
+            <span class="badge badge-primary">Primary Contact</span>
+            {% endif %}
+          </div>
+          {% if contact.relationship %}
+          <p class="contact-meta"><span class="contact-label">Relationship</span> {{ contact.relationship }}</p>
+          {% endif %}
+          {% if contact.phone_number %}
+          <p class="contact-meta"><span class="contact-label">Phone</span> {{ contact.phone_number }}</p>
+          {% endif %}
+          {% if contact.email %}
+          <p class="contact-meta"><span class="contact-label">Email</span> {{ contact.email }}</p>
+          {% endif %}
+          <div class="contact-actions">
+            <button type="button" class="btn btn-secondary btn-sm js-edit-toggle" data-target="edit-{{ contact.id }}">Edit</button>
+            {% if not contact.is_primary %}
+            <form method="post" action="{{ url_for('contacts_set_primary', contact_id=contact.id) }}" class="inline-form">
+              <button type="submit" class="btn btn-secondary btn-sm">Set Primary</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('contacts_delete', contact_id=contact.id) }}" class="inline-form" onsubmit="return confirm('Delete {{ contact.full_name }}?');">
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </div>
+        </div>
+
+        <form
+          method="post"
+          action="{{ url_for('contacts_edit', contact_id=contact.id) }}"
+          class="contact-form contact-edit-form hidden"
+          id="edit-{{ contact.id }}"
+        >
+          <h4>Edit contact</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-name-{{ contact.id }}">Full name <span class="required">*</span></label>
+              <input type="text" id="edit-name-{{ contact.id }}" name="full_name" value="{{ contact.full_name }}" required maxlength="255">
+            </div>
+            <div class="form-group">
+              <label for="edit-rel-{{ contact.id }}">Relationship</label>
+              <input type="text" id="edit-rel-{{ contact.id }}" name="relationship" value="{{ contact.relationship or '' }}" maxlength="64">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-phone-{{ contact.id }}">Phone number</label>
+              <input type="tel" id="edit-phone-{{ contact.id }}" name="phone_number" value="{{ contact.phone_number or '' }}" maxlength="32">
+            </div>
+            <div class="form-group">
+              <label for="edit-email-{{ contact.id }}">Email</label>
+              <input type="email" id="edit-email-{{ contact.id }}" name="email" value="{{ contact.email or '' }}" maxlength="255">
+            </div>
+          </div>
+          <div class="contact-actions">
+            <button type="submit" class="btn btn-sm">Save changes</button>
+            <button type="button" class="btn btn-secondary btn-sm js-edit-cancel" data-target="edit-{{ contact.id }}">Cancel</button>
+          </div>
+        </form>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card contacts-empty">
+      <h3>No trusted contacts yet</h3>
+      <p>Add someone you trust so they can be reached in an emergency. Your first contact will automatically become primary unless you choose otherwise.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/contacts.js') }}"></script>
+{% endblock %}

@@ -4,7 +4,8 @@ from datetime import datetime
 
 from flask_login import UserMixin
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship as orm_relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.extensions import db
@@ -21,16 +22,16 @@ class User(UserMixin, db.Model):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    trusted_contacts: Mapped[list["TrustedContact"]] = relationship(
+    trusted_contacts: Mapped[list["TrustedContact"]] = orm_relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
-    subscriptions: Mapped[list["Subscription"]] = relationship(
+    subscriptions: Mapped[list["Subscription"]] = orm_relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
-    sos_alerts: Mapped[list["SOSAlert"]] = relationship(
+    sos_alerts: Mapped[list["SOSAlert"]] = orm_relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
-    conversations: Mapped[list["Conversation"]] = relationship(
+    conversations: Mapped[list["Conversation"]] = orm_relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 
@@ -50,14 +51,17 @@ class TrustedContact(db.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    phone: Mapped[str] = mapped_column(String(32), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    phone_number: Mapped[str | None] = mapped_column(String(32))
     email: Mapped[str | None] = mapped_column(String(255))
-    notify_sms: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    notify_email: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    relationship: Mapped[str | None] = mapped_column(String(64))
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
-    user: Mapped["User"] = relationship(back_populates="trusted_contacts")
+    user: Mapped["User"] = orm_relationship(back_populates="trusted_contacts")
 
 
 class SOSAlert(db.Model):
@@ -72,7 +76,7 @@ class SOSAlert(db.Model):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime)
 
-    user: Mapped["User"] = relationship(back_populates="sos_alerts")
+    user: Mapped["User"] = orm_relationship(back_populates="sos_alerts")
 
 
 class Subscription(db.Model):
@@ -88,7 +92,7 @@ class Subscription(db.Model):
     started_at: Mapped[datetime | None] = mapped_column(DateTime)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime)
 
-    user: Mapped["User"] = relationship(back_populates="subscriptions")
+    user: Mapped["User"] = orm_relationship(back_populates="subscriptions")
 
 
 class Conversation(db.Model):
@@ -102,8 +106,8 @@ class Conversation(db.Model):
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
 
-    user: Mapped["User"] = relationship(back_populates="conversations")
-    messages: Mapped[list["Message"]] = relationship(
+    user: Mapped["User"] = orm_relationship(back_populates="conversations")
+    messages: Mapped[list["Message"]] = orm_relationship(
         back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at"
     )
 
@@ -121,4 +125,4 @@ class Message(db.Model):
     search_mode: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
-    conversation: Mapped["Conversation"] = relationship(back_populates="messages")
+    conversation: Mapped["Conversation"] = orm_relationship(back_populates="messages")

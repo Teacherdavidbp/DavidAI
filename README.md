@@ -13,10 +13,33 @@ PostgreSQL-backed auth with Flask-Login and Werkzeug password hashing.
 | Session management | Ready (Flask-Login, remember me) |
 | User dashboard | Ready |
 | AI Chat MVP | Ready |
+| Trusted Contacts MVP | Ready |
 | GPS location sharing | Architecture ready |
-| Trusted contacts | Models ready |
 | SOS emergency button | UI scaffold |
 | £3.99 subscription | Planned (Stripe) |
+
+## Trusted Contacts (`/contacts`)
+
+Logged-in users can manage emergency contacts stored in PostgreSQL.
+
+| Feature | Details |
+|---------|---------|
+| Add / edit / delete | Form-based CRUD |
+| Primary contact | One primary per user; badge in UI |
+| Validation | Full name required; phone or email required |
+| Security | Flask-Login; users see only their own contacts |
+
+### Routes
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| GET | `/contacts` | Trusted contacts page |
+| POST | `/contacts/add` | Add contact |
+| POST | `/contacts/edit/<id>` | Edit contact |
+| POST | `/contacts/delete/<id>` | Delete contact |
+| POST | `/contacts/set-primary/<id>` | Set primary contact |
+
+Test report: `docs/TRUSTED_CONTACTS_MVP_TEST_REPORT.md`
 
 ## AI Chat (`/chat`)
 
@@ -70,14 +93,15 @@ Requires Ollama running with `qwen2.5:7b` installed.
 
 - **Dev DB:** `davidai_dev`
 - **Config:** `database/config.py` (`DAVIDAI_DATABASE_URL`)
-- **Models:** `database/models.py` — includes `conversations`, `messages`
-- **Migrations:** `alembic upgrade head` from project root
+- **Models:** `database/models.py` — `users`, `trusted_contacts`, `conversations`, `messages`
+- **Migrations:** `alembic upgrade head` from project root (includes `003_trusted_contacts`)
 
 ## Navigation
 
 - **Dashboard** — Account overview and quick actions
 - **AI Chat** — Local Qwen chat with history
-- **Safety** — SOS and trusted contacts
+- **Safety** — SOS overview
+- **Trusted Contacts** — Manage emergency contacts
 - **Profile** — User details and subscription
 
 ## Structure
@@ -85,16 +109,18 @@ Requires Ollama running with `qwen2.5:7b` installed.
 ```
 DavidAI/
 ├── backend/
-│   ├── app.py           Flask app + auth + chat routes
-│   ├── chat_service.py  Ollama + mock web search
-│   ├── chat_routes.py   Conversation storage
-│   └── requirements.txt
+│   ├── app.py
+│   ├── chat_service.py
+│   ├── chat_routes.py
+│   ├── contacts_service.py
+│   ├── contacts_routes.py
+│   └── test_trusted_contacts_mvp.py
 ├── database/
 │   ├── config.py
 │   ├── models.py
 │   └── migrations/
-├── frontend/templates/
-├── frontend/static/js/chat.js
+├── frontend/templates/contacts.html
+├── docs/TRUSTED_CONTACTS_MVP_PLAN.md
 └── run_migrations.ps1
 ```
 

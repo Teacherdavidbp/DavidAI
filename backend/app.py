@@ -16,6 +16,7 @@ sys.path.insert(0, str(BASE_DIR))
 
 load_dotenv(BASE_DIR / ".env")
 
+from backend.contacts_routes import register_contacts_routes  # noqa: E402
 from backend.chat_routes import (  # noqa: E402
     clear_user_conversations,
     conversation_to_dict,
@@ -59,6 +60,7 @@ def create_app() -> Flask:
         return db.session.get(User, int(user_id))
 
     register_routes(app)
+    register_contacts_routes(app)
     return app
 
 
